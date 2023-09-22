@@ -1,13 +1,17 @@
 from flask import (
     Flask, render_template,
     request, make_response,session,
-    url_for, redirect)
+    url_for, redirect, Blueprint)
 from flask_sqlalchemy import SQLAlchemy
 from flask.views import View
-from sample_blueprint import sampleBP
+from .sample_blueprint import sampleBP
 import click
 from flask.cli import AppGroup
-import os
+
+helloBP = Blueprint('hello',
+                    __name__,
+                    template_folder='templates'
+                    )
 
 
 app = Flask(__name__)
@@ -16,39 +20,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydatabase.db'
 app.config['SECRET_KEY'] = 'any random string value'
 db = SQLAlchemy(app)
 app.register_blueprint(sampleBP)
-
-
-def create_app(test_config=None):
-    app = Flask(__name__, instance_path='/path/to/project')
-    app.config.from_mapping(
-        SQLALCHEMY_DATABASE_URI='sqlite:///' + os.path.join(app.instance_path, 'Project/mydatabase.db'),
-        SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    )
-    db.init_app(app)
-
-    @app.shell_context_processor
-    def make_shell_context():
-        return dict(app=app, db=db)
-
-    with app.app_context():
-        from models import User, Contact, Blogpost, Tag
-        db.create_all()
-
-        app.cli.add_command(mycommand)
-        app.cli.add_command(group_cli)
-
-    if test_config is None:
-        app.config.from_pyfile('config.py', silent=True)
-    else:
-        app.config.from_mapping(test_config)
-
-    app.register_blueprint(sampleBP)
-
-    # a simple page that says hello
-    @app.route('/hello')
-    def hello():
-        return 'Hello, AppFactory!'
-    return app
 
 
 @click.command('command1')
@@ -108,7 +79,7 @@ class ListView(BaseView):
         return render_template(self.template, **self.get_objects())
 
 
-from models import User
+from .models import User
 app.add_url_rule('/userlist/', view_func=ListView.as_view('show_users', template_name='listusers.html',  model=User))
 
 
